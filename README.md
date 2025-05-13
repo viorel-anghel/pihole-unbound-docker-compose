@@ -13,12 +13,20 @@ To be more precise, I'm using Docker Compose with a docker-compose file generate
 Unfortunately, that project is apparently unmaintained, so I made my own improvements, which I'm documenting here. The project includes a shell script used to generate a docker-compose.yaml file. I think that script is overkill for this task, so I prefer to show you my final file and comment on it to help you make changes for your setup.
 
 ## Network settings explained
-Before diving into `docker-compose.yaml` file, tel me explain the network settings. 
+Before diving into `docker-compose.yaml` file, let me explain the network settings. 
 
-WIP
+In Docker, `macvlan` is a special network driver that allows you to assign containers their own MAC and IP addresses, directly from the host’s physical network. Essentially, the container becomes visible on the network as a completely separate device—just like another computer.
+
+This line `ip_range: 192.168.0.16/30  # small subnet for containers` in docker-compose is defining a very small sub-network inside my home network which is 192.168.0.0/24. Only two IP addresses can be used in a network defined with `/30` and in our case they will be 
+
+- 192.168.0.18 for the pihole container and 
+- 192.168.0.17 for the unbound container.
 
 ## Unbound configuration file
-WIP
+
+The unbound daemon will need a configuration file. In `unbound.conf` the only important thing is the line `access-control: 192.168.0.18 allow` with the IP from the pihole container which will access the unbound DNS server.
+
+You'll need to copy this file at the location defined in docker-compose, see the line `- /root/pihole-unbound/etc-unbound/:/etc/unbound/`.
 
 ## Usage
 WIP
