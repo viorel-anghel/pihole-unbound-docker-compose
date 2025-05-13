@@ -1,0 +1,87 @@
+
+# you will need to make changes in this file
+# hunt for every comment
+
+networks:
+    macvlan:
+        name: pihole_macvlan
+        driver: macvlan
+        driver_opts:
+
+# your primary network interface. eth0?
+            parent: br0
+        ipam:
+            config:
+                - subnet: 192.168.0.0/24     # local subnet
+                  gateway: 192.168.0.1       # default gateway
+                  ip_range: 192.168.0.16/30  # small subnet for containers
+
+services:
+
+# first container
+    pihole:
+        container_name: pihole
+        image: pihole/pihole:latest
+#       cap_add: # Uncomment if you want to use Pi-Hole for DHCP
+#         - NET_ADMIN
+        ports:
+            - 53:53/tcp
+            - 53:53/udp
+#            - 67:67/udp # Uncomment if you want to use Pi-Hole for DHCP
+            - 80:80/tcp
+            - 443:443/tcp
+        environment:
+            DNSMASQ_LISTENING: all
+            DNSMASQ_USER: root
+# adjust timezone
+            TZ: Europe/Bucharest  
+
+# change password
+            FTLCONF_webserver_api_password: 1qaz2wsx  
+
+# 
+            VIRTUAL_HOST: pihole2.local
+
+# this is the IP used by unbound container
+            FTLCONF_dns_upstreams: 192.168.0.17
+
+# this is the IP used by pihole container
+            ServerIP: 192.168.0.18
+
+# adjust the left side on paths
+        volumes:
+            - /root/pihole-unbound/etc-pihole/:/etc/pihole/
+            - /root/pihole-unbound/etc-dnsmasq.d/:/etc/dnsmasq.d/
+            # Synchronize with host clock
+            - /etc/localtime:/etc/localtime:ro
+
+        restart: unless-stopped
+
+        networks:
+            macvlan:
+# the IP for pihole container
+                ipv4_address: 192.168.0.18
+        mac_address: 20:c6:98:5b:b3:76
+# 
+        hostname: pihole2
+        domainname: local
+
+# second container
+    unbound:
+        container_name: unbound
+        image: alpinelinux/unbound:latest
+
+# adjust the left side on paths
+        volumes:
+          - /root/pihole-unbound/etc-unbound/:/etc/unbound/
+        ports:
+          - 53/tcp
+          - 53/udp
+
+        networks:
+          macvlan:
+
+# the IP for unbound container
+            ipv4_address: 192.168.0.17
+        restart: always
+
