@@ -29,5 +29,10 @@ The unbound daemon will need a configuration file. In `unbound.conf` the only im
 You'll need to copy this file at the location defined in docker-compose, see the line `- /root/pihole-unbound/etc-unbound/:/etc/unbound/`.
 
 ## Usage
+
+Decide a location where to run the whole thing and copy and edit the docker-compose.yaml there. In my case, I'm using `/root/pihole-unbound/'. Use the `docker compose up -d` command to start the containers.
+
+---
 WIP
+ 
 
